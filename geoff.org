@@ -1,0 +1,1147 @@
+#+TITLE: geoff.org --- My personal GNU Emacs configuration
+#+DATE: <2017-05-01 Mon>
+#+AUTHOR: Geoffrey T. Wark
+#+EMAIL: deek9n@protonmail.ch
+
+#+BEGIN_QUOTE
+"/This is my Emacs.  There are many like it, but this one is mine./"
+		--Emacsen Creed
+#+END_QUOTE
+
+I converted to the [[https://www.emacswiki.org/emacs/ChurchOfEmacs][Church of Emacs]] during the summer of 2015.  While Emacs is the [[https://www.youtube.com/watch?v=VADudzQGvU8][editor of a lifetime]], do *NOT* bother unless you have the time (6+ months) and interest to invest.  Something like [[https://atom.io/][Atom]] may be better to start with.  Rest assured, however, that it /is/ entirely worth it to use Emacs and it will rapidly spread like a (good) cancer throughout your workflow/life...  What follows in the ever-evolving setup I have picked up along the way.  Enjoy!
+
+This config relies heavily on [[https://github.com/jwiegley/use-package][use-package]] by [[https://github.com/jwiegley][John Wiegley]] (the current Emacs maintainer) and [[http://orgmode.org/worg/org-contrib/babel/][Babel]].  My inspiration came primarily from [[https://github.com/danielmai/.emacs.d][Daniel Mai]] and [[http://pages.sachachua.com/.emacs.d/Sacha.html][Sacha Chua]].  Smaller references will be noted in their respective sections.  Check'em all out! :^)
+
+*NOTE:* My keyboard layout is Dvorak which should explain at least some of my "odd" choices when assigning keys.  This is Emacs though so change them and have it your way.
+
+* Installing GNU Emacs
+
+Here are some brief instructions on how to properly acquire GNU Emacs on the 3 most popular operating systems.
+
+*NOTE:* You should consider running [[https://www.emacswiki.org/emacs/EmacsAsDaemon][Emacs as a daemon]] when possible for both speed and integrity reasons.  Use =emacsclient -c -n &= to connect.
+
+** Window$
+
+Download and unzip the most recent version from this [[http://emacsbinw64.sourceforge.net/][link]].  This is a special 64-bit version with added GNU binaries.  Open =runemacs.exe= found in the =bin= folder to start.  That's it! :D
+
+*NOTE:* Some aspects of this config may not work well (or at all) under Windows.  Try Linux instead!
+
+** macOS
+
+Use [[https://brew.sh/][Homebrew]].  The command below will install the native GUI version with support for both image processing and secure communications.
+
+#+BEGIN_SRC sh :tangle no
+  brew install emacs --with-cocoa --with-imagemagick --with-gnutls
+#+END_SRC
+
+*NOTE:* I no longer test this config on Apple products.  Consider reading this [[https://korewanetadesu.com/emacs-on-os-x.html][resource]] for specific OS X tips.
+
+** Ubuntu/Debian
+
+Use the default package manager[fn:1]
+
+#+BEGIN_SRC sh :tangle no
+  sudo apt-get update && sudo apt-get install -y emacs
+#+END_SRC
+
+*NOTE:* I personally use the "lucid" version of Emacs to avoid certain crashes with X.  You may wish to do the same.  The package name is typically named =emacsXX-lucid= (replace XX with the version number).
+
+[fn:1] You should probably already know exactly what to do if you're using a different flavor of Linux. :P
+
+* First Things First
+** Move the =custom-file=
+
+Prevent customization settings from appending junk to [[file:init.el][init.el]].  We don't care if [[file:custom.el][custom.el]] actually exists though.  This issue tends to only affect Windows machines for me due to "safe" themes.
+
+#+BEGIN_SRC emacs-lisp
+  (setq custom-file "~/emacs.d/custom.el")
+  (load custom-file :noerror)
+#+END_SRC
+
+** =use-package= settings
+
+Always install packages automatically if not already present on the system.
+
+#+BEGIN_SRC emacs-lisp
+  (setq use-package-always-ensure t)
+#+END_SRC
+
+*** Prerequisite Packages
+**** dash
+
+A modern list library for Emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dash)
+#+END_SRC
+
+** Load private settings
+
+This file contains somewhat sensitive information and thus is not included in public-facing repos.
+
+#+BEGIN_SRC emacs-lisp
+;TODO
+#+END_SRC
+
+* User Interface
+** Free up screen real estate
+
+The following toolbars take up unnecessary space:
+
+#+BEGIN_SRC emacs-lisp
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+#+END_SRC
+
+** Theme
+
+[[http://kippura.org/zenburnpage/][Zenburn]] is pretty easy on the eyes.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package zenburn-theme
+    :init
+    (load-theme 'zenburn t))
+#+END_SRC
+
+** Face
+
+Italicize comments.
+
+#+BEGIN_SRC emacs-lisp
+  (make-face-italic 'font-lock-comment-face)
+#+END_SRC
+
+Display trailing whitespace.  I like to use the color orange for this.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default show-trailing-whitespace t)
+  (set-face-attribute 'trailing-whitespace nil :background "orange")
+#+END_SRC
+
+The default coloring for region when using dark themes (which is all I use) isn't obvious for me.  I like to use a white background with black text due to how jarring it is by comparison.
+
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'region nil :background "white smoke" :foreground "black")
+#+END_SRC
+
+** Cursor
+
+The default cursor is hard for me to see at times.  Let's make it bright red.
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'default-frame-alist '(cursor-color . "red"))
+#+END_SRC
+
+Also stop that goddamn blinking!
+
+#+BEGIN_SRC emacs-lisp
+  (blink-cursor-mode -1)
+#+END_SRC
+
+** Font
+
+[[https://en.wikipedia.org/wiki/Liberation_fonts][Liberation]] fonts are pretty dope.
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'default-frame-alist '(font . "Liberation Mono-11"))
+;TODO
+#+END_SRC
+
+* Indentation
+
+I *HATE* tabs!  Turn them off! >:(
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode nil)
+#+END_SRC
+
+Default to using 2 spaces per indent.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default tab-width 2)
+#+END_SRC
+
+Highlight any existing tabs in programming or text buffers as light purple.
+
+#+BEGIN_SRC emacs-lisp
+  (defface my/tab-face
+    '((t (:background "medium purple")))
+    "Used for tabs.")
+
+  (defvar my/extra-keywords
+    '(("\t" . 'my/tab-face)))
+
+  (add-hook 'prog-mode-hook
+            (lambda () (font-lock-add-keywords nil my/extra-keywords)))
+  (add-hook 'text-mode-hook
+            (lambda () (font-lock-add-keywords nil my/extra-keywords)))
+#+END_SRC
+
+** C-family
+
+Use 4 spaces.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default c-basic-offset 4)
+#+END_SRC
+
+Fix odd indent behavior of switch case statements.
+
+#+BEGIN_SRC emacs-lisp
+  (c-set-offset 'case-label '+)
+#+END_SRC
+
+** Webdev stuff
+
+Use 2 spaces.  This needs to be explicitly set for some dumb reason.
+
+#+BEGIN_SRC emacs-lisp
+  (setq css-indent-offset 2)
+  (setq web-mode-markup-indent-offset 2)
+#+END_SRC
+
+** Makefiles
+
+Use /real/ tabs that have a width of 3.  =makefile-mode= will choose to use tabs over spaces by default (as it should).
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'makefile-mode-hook (lambda () (setq tab-width 3)))
+#+END_SRC
+
+* Sane Defaults
+
+Many of these come from [[https://github.com/magnars/.emacs.d/blob/master/settings/sane-defaults.el][Magnar Sveen]].  His [[http://emacsrocks.com/][Emacs Rocks!]] series is definitely worth a watch or fifteen.
+
+-----
+
+ALWAYS use UTF-8 encoding.  If you really need something else, use =C-x C-m f= to re-encode.
+
+#+BEGIN_SRC emacs-lisp
+  (setq locale-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+#+END_SRC
+
+Store all backups and auto-saves to the system's "temp" directory.  This prevents Emacs from leaving clutter everywhere.
+
+#+BEGIN_SRC emacs-lisp
+  (setq backup-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+        `((".*" ,temporary-file-directory t)))
+#+END_SRC
+
+Focus the current line.
+
+#+BEGIN_SRC emacs-lisp
+  (global-hl-line-mode t)
+#+END_SRC
+
+Refresh the file buffers automatically.
+
+#+BEGIN_SRC emacs-lisp
+  (global-auto-revert-mode t)
+#+END_SRC
+
+Also refresh dired automatically, but be quiet about it.
+
+#+BEGIN_SRC emacs-lisp
+  (setq global-auto-revert-non-file-buffers t)
+  (setq auto-revert-verbose nil)
+#+END_SRC
+
+Move files to Trash instead of deleting.
+
+#+BEGIN_SRC emacs-lisp
+  (setq delete-by-moving-to-trash t)
+#+END_SRC
+
+Display column numbers in the mode line.
+
+#+BEGIN_SRC emacs-lisp
+  (setq column-number-mode t)
+#+END_SRC
+
+Delete text in region if/when typed in (like a /normal/ editor).
+
+#+BEGIN_SRC emacs-lisp
+  (delete-selection-mode t)
+#+END_SRC
+
+Lines should be 80 characters long.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default fill-column 80)
+#+END_SRC
+
+Try to flash the frame to represent a bell.
+
+#+BEGIN_SRC emacs-lisp
+  (setq visible-bell t)
+#+END_SRC
+
+Indicate in the fringe when the file ends.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default indicate-empty-lines t)
+#+END_SRC
+
+Easily navigate silly-cased words.
+
+#+BEGIN_SRC emacs-lisp
+  (global-subword-mode t)
+#+END_SRC
+
+If a buffer's name is not unique, add parts of the file's directory to the buffer name until it is.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'forward)
+#+END_SRC
+
+Show keystrokes in progress.
+
+#+BEGIN_SRC emacs-lisp
+  (setq echo-keystrokes 0.1)
+#+END_SRC
+
+Transparently open compressed files.
+
+#+BEGIN_SRC emacs-lisp
+  (auto-compression-mode t)
+#+END_SRC
+
+Don't use shift for selection.
+
+#+BEGIN_SRC emacs-lisp
+  (setq shift-selection-mode nil)
+#+END_SRC
+
+Allow recursive minibuffers.
+
+#+BEGIN_SRC emacs-lisp
+  (setq enable-recursive-minibuffers t)
+#+END_SRC
+
+Save the minibuffer history too.
+
+#+BEGIN_SRC emacs-lisp
+  (savehist-mode t)
+  (setq history-length 1000)
+#+END_SRC
+
+Undo/redo changes to the window layout with =C-c left= and =C-c right=.
+
+#+BEGIN_SRC emacs-lisp
+  (winner-mode t)
+#+END_SRC
+
+Increase undo history size.
+
+#+BEGIN_SRC emacs-lisp
+  (setq undo-limit 1000000)
+  (setq undo-strong-limit 2000000)
+#+END_SRC
+
+Turn off line wrapping.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default truncate-lines t)
+#+END_SRC
+
+* Custom Functions
+
+Allow myself to insert and go to a newline from anywhere in the current line.
+
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "M-n") '(lambda ()
+                                 (interactive)
+                                 (end-of-line)
+                                 (newline-and-indent)))
+#+END_SRC
+
+Clean buffers of tabs and extraneous whitespace.
+
+#+BEGIN_SRC emacs-lisp
+  (defun my/clean-buffer ()
+    "Run `untabify' and `delete-trailing-whitespace' on the entire buffer."
+    (interactive)
+    (if (y-or-n-p "Clean buffer?")
+        (progn
+          (untabify (point-min) (point-max))
+          (delete-trailing-whitespace)
+          (message "Buffer has been cleaned."))))
+#+END_SRC
+
+Rename current file and buffer (credit to [[https://rejeep.github.io/emacs/elisp/2010/03/26/rename-file-and-buffer-in-emacs.html][Johan Andersson]]).
+
+#+BEGIN_SRC emacs-lisp
+  (defun rename-this-buffer-and-file ()
+    "Renames current buffer and file it is visiting."
+    (interactive)
+    (let ((name (buffer-name))
+          (filename (buffer-file-name)))
+      (if (not (and filename (file-exists-p filename)))
+          (error "Buffer '%s' is not visiting a file!" name)
+        (let ((new-name (read-file-name "New name: " filename)))
+          (cond ((get-buffer new-name)
+                 (error "A buffer named '%s' already exists!" new-name))
+                (t
+                 (rename-file filename new-name 1)
+                 (rename-buffer new-name)
+                 (set-visited-file-name new-name)
+                 (set-buffer-modified-p nil)
+                 (message "File '%s' successfully renamed to '%s'" name (file-name-nondirectory new-name))))))))
+
+  (global-set-key (kbd "C-c r") 'rename-this-buffer-and-file)
+#+END_SRC
+
+Edit file with root privileges if required (credit to [[https://emacs-fu.blogspot.com/2013/03/editing-with-root-privileges-once-more.html][Dirk-Jan C. Binnema]]).
+
+#+BEGIN_SRC emacs-lisp
+  (defun djcb-find-file-as-root ()
+    "Like `ido-find-file, but automatically edit the file with
+  root-privileges (using tramp/sudo), if the file is not writable by
+  user."
+    (interactive)
+    (let ((file (ido-read-file-name "Edit as root: ")))
+      (unless (file-writable-p file)
+        (setq file (concat "/sudo:root@localhost:" file)))
+      (find-file file)))
+  ;; or some other keybinding...
+  (global-set-key (kbd "C-x F") 'djcb-find-file-as-root)
+#+END_SRC
+
+Automatically Create Parent Directories on Visiting a New File in Emacs ([[http://iqbalansari.me/][Iqbal Ansari]])
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-create-non-existent-directory ()
+        (let ((parent-directory (file-name-directory buffer-file-name)))
+          (when (and (not (file-exists-p parent-directory))
+                     (y-or-n-p (format "Directory `%s' does not exist! Create it?" parent-directory)))
+            (make-directory parent-directory t))))
+
+  (add-to-list 'find-file-not-found-functions #'my-create-non-existent-directory)
+#+END_SRC
+
+* Packages
+
+Almost all of these come from [[https://melpa.org/#/][MELPA]] (or seldomly [[https://elpa.gnu.org/][GNU ELPA]]).  Those that do not are installed manually to =~/emacs.d/elisp/=
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "~/.emacs.d/elisp/")
+#+END_SRC
+
+-----
+
+** anzu
+
+Show number of matches in mode-line while searching
+
+#+BEGIN_SRC emacs-lisp
+  (use-package anzu
+    :diminish anzu-mode
+    :init
+    (global-anzu-mode t))
+#+END_SRC
+
+** ace-jump-mode
+
+a quick cursor location minor mode for emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-jump-mode
+    :diminish ace-jump-mode
+    :bind ("C-)" . ace-jump-mode))
+#+END_SRC
+
+** ace-window
+
+Quickly switch windows.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :bind ("M-p" . ace-window)
+    :config
+    (setq aw-keys '(?a ?o ?e ?u ?h ?t ?n ?s)))
+#+END_SRC
+
+** column-marker
+
+Highlight certain character columns.  I choose to mark columns #81, #101, and #121 so that I can progressively know if my lines are getting too long.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package column-marker
+    :config
+    (set-face-attribute 'column-marker-1 nil :background "black")
+    (set-face-attribute 'column-marker-2 nil :background "dark slate gray")
+    (set-face-attribute 'column-marker-3 nil :background "hot pink")
+
+    (add-hook 'find-file-hook (lambda ()
+                                (interactive)
+                                (column-marker-1 81)
+                                (column-marker-2 101)
+                                (column-marker-3 121))))
+#+END_SRC
+
+** company
+
+Modular text completion framework
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :diminish company-mode
+    :init
+    (add-hook 'after-init-hook 'global-company-mode))
+#+END_SRC
+
+*** company-emoji
+
+company-mode backend for emoji
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company-emoji
+    :config
+    (add-to-list 'company-backends 'company-emoji))
+#+END_SRC
+
+*** company-jedi
+
+company-mode completion back-end for Python JEDI
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company-jedi
+    :init
+    (defun my/python-mode-hook ()
+      (add-to-list 'company-backends 'company-jedi))
+
+    (add-hook 'python-mode-hook 'my/python-mode-hook))
+#+END_SRC
+
+** csharp-mode
+
+C# mode derived mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package csharp-mode
+    :init
+    ;; This package throws an error for me unless I require this...
+    (require 'cl))
+#+END_SRC
+
+** elfeed
+
+an Emacs Atom/RSS feed reader
+
+#+BEGIN_SRC emacs-lisp
+  (use-package elfeed
+    :bind ("C-x w" . elfeed)
+    :init
+    (setq-default elfeed-search-filter "@1-week-ago +unread "))
+#+END_SRC
+
+** emojify
+
+Display emojis in Emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package emojify
+    :init
+    (add-hook 'after-init-hook #'global-emojify-mode))
+#+END_SRC
+
+Turn off for Org Agenda buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-agenda-finalize-hook (lambda () (emojify-mode -1)))
+#+END_SRC
+
+** eshell
+
+Turn off some undesirable minor modes while using eshell.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'eshell-mode-hook (lambda ()
+                                (company-mode -1)
+                                (toggle-truncate-lines)))
+#+END_SRC
+
+Allow clearing of the eshell buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (defun eshell/clear ()
+    "Clear the eshell buffer."
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+#+END_SRC
+
+** esup
+
+the Emacs StartUp Profiler (ESUP)
+
+#+BEGIN_SRC emacs-lisp
+  (use-package esup)
+#+END_SRC
+
+** exec-path-from-shell
+
+Get environment variables such as $PATH from the shell
+
+#+BEGIN_SRC emacs-lisp
+  (use-package exec-path-from-shell
+    :init
+    (exec-path-from-shell-copy-env "SSH_AGENT_PID")
+    (exec-path-from-shell-copy-env "SSH_AUTH_SOCK"))
+#+END_SRC
+
+** expand-region
+
+Increase selected region by semantic units.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package expand-region
+    :bind ("C-=" . er/expand-region))
+#+END_SRC
+
+** flycheck
+
+On-the-fly syntax checking
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :diminish flycheck-mode
+    :init
+    (add-hook 'after-init-hook #'global-flycheck-mode))
+#+END_SRC
+
+** flyspell
+
+On-the-fly spell checking
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flyspell
+    :diminish flyspell-mode
+    :init
+    (setq flyspell-issue-message-flag nil)
+    :config
+    (add-hook 'text-mode-hook 'flyspell-mode))
+#+END_SRC
+
+** forecast
+
+Weather forecasts
+
+#+BEGIN_SRC emacs-lisp
+  ;; TODO make file w/ rest of the needed vars
+  (use-package forecast
+    :init
+    (setq forecast-units 'us))
+#+END_SRC
+
+** fringe-helper
+
+helper functions for fringe bitmaps
+
+#+BEGIN_SRC emacs-lisp
+  (use-package fringe-helper)
+#+END_SRC
+
+** gist
+
+Emacs integration for gist.github.com
+
+#+BEGIN_SRC emacs-lisp
+  (use-package gist)
+#+END_SRC
+
+** git-gutter-fringe
+
+Fringe version of git-gutter.el
+
+#+BEGIN_SRC emacs-lisp
+  (use-package git-gutter-fringe
+    :config
+    (set-face-foreground 'git-gutter-fr:added "green")
+    (set-face-foreground 'git-gutter-fr:deleted "blue")
+    (set-face-foreground 'git-gutter-fr:modified "yellow")
+
+    (global-git-gutter-mode t))
+#+END_SRC
+
+** google-maps
+
+Access Google Maps from Emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package google-maps)
+#+END_SRC
+
+** google-translate
+
+Emacs interface to Google Translate.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package google-translate)
+#+END_SRC
+
+** hl-indent
+
+Highlight irregular indentation.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package hl-indent
+    :init
+    (add-hook 'prog-mode-hook 'hl-indent-mode)
+    :config
+    (set-face-attribute 'hl-indent-face nil :background "gray27"))
+#+END_SRC
+
+** ido
+
+TODOthis could be done cleaner...
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ido
+    :init
+    (use-package ido-complete-space-or-hyphen)
+    (setq ido-everywhere t)
+    (ido-mode t)
+    (use-package ido-vertical-mode
+      :init
+      (ido-vertical-mode t)
+      (setq ido-vertical-define-keys 'C-n-and-C-p-only))
+    (use-package flx-ido
+      :init
+      (flx-ido-mode 1)
+      ;; disable ido faces to see flx highlights.
+      (setq ido-enable-flex-matching t)
+      (setq ido-use-faces nil)))
+#+END_SRC
+
+** inf-ruby
+
+Run a Ruby process in a buffer
+
+#+BEGIN_SRC emacs-lisp
+  (use-package inf-ruby)
+#+END_SRC
+
+** ispell
+
+Add hotkey to spellcheck words at cursor point.
+
+#+BEGIN_SRC emacs-lisp
+;TODO
+#+END_SRC
+
+** js3-mode
+
+An improved JavaScript editing mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package js3-mode
+    :mode "\\.js$")
+#+END_SRC
+
+** magit
+
+A Git porcelain inside Emacs.  Fullscreen =magit-status= functionality credit goes to [[http://whattheemacsd.com/setup-magit.el-01.html][Magnar Sveen]] once again.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :bind ("C-c g" . magit-status)
+    :config
+    ;; full screen magit-status
+
+    (defadvice magit-status (around magit-fullscreen activate)
+      (window-configuration-to-register :magit-fullscreen)
+      ad-do-it
+      (delete-other-windows))
+
+    (defun magit-quit-session ()
+      "Restores the previous window configuration and kills the magit buffer"
+      (interactive)
+      (kill-buffer)
+      (jump-to-register :magit-fullscreen))
+
+    (define-key magit-status-mode-map (kbd "q") 'magit-quit-session))
+#+END_SRC
+
+** multiple-cursors
+
+Multiple cursors for Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package multiple-cursors
+    :bind (("C-c M" . mc/edit-lines)
+           ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
+#+END_SRC
+
+** nyan-mode
+
+THE KILLER APP FOR EMACS /s
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nyan-mode
+    :init
+    (nyan-mode t))
+#+END_SRC
+
+** Org-mode related
+
+You should really, really, really read the [[http://orgmode.org/guide/index.html][compact Org-mode guide]].
+
+-----
+
+Ensure =org= gets loaded and add some basic global keybinds.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'org)
+  (define-key global-map "\C-cl" 'org-store-link)
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-log-done t)
+#+END_SRC
+
+Change TODO keywords.
+
+#+BEGIN_SRC emacs-lisp
+  ;; TODO add more
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "|" "DONE(d)")))
+#+END_SRC
+
+Place tags directly after headline text, with only one space in between.
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-tags-column 0)
+#+END_SRC
+
+Turn on smart line wrapping for Org-mode files.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-mode-hook (lambda () (visual-line-mode)))
+#+END_SRC
+
+Hide font formatting characters.
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-hide-emphasis-markers t)
+#+END_SRC
+
+Turn off =flycheck-mode= while editing source blocks.  It mostly just throws bogus errors if you're just editing snippets.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-src-mode-hook (lambda () (flycheck-mode -1)))
+#+END_SRC
+
+The default =org-ellipsis= is ugly... CHANGE IT!
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-ellipsis "\u2935") ; ⤵️
+#+END_SRC
+
+Make source blocks stand out a bit with a darker background.
+
+#+BEGIN_SRC emacs-lisp
+  (dolist (face '(org-meta-line
+                  org-block))
+    (set-face-attribute face nil :background "gray19"))
+#+END_SRC
+
+Use circular bullets (credit to [[http://www.howardism.org/Technical/Emacs/orgmode-wordprocessor.html][Howard Abrams]]).
+
+#+BEGIN_SRC emacs-lisp
+  (font-lock-add-keywords 'org-mode
+                          '(("^ +\\([-*]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+END_SRC
+
+*** org-bullets
+
+Show bullets in org-mode as UTF-8 characters
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :init
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode t))))
+#+END_SRC
+
+*** org-table-sticky-header
+
+Sticky header for org-mode tables
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-table-sticky-header
+    :init
+    (add-hook 'org-mode-hook 'org-table-sticky-header-mode))
+#+END_SRC
+
+** page-break-lines
+
+Display ugly ^L page breaks as tidy horizontal lines
+
+#+BEGIN_SRC emacs-lisp
+  (use-package page-break-lines
+    :diminish page-break-lines-mode
+    :init
+    (global-page-break-lines-mode))
+#+END_SRC
+
+** pianobar.el *MANUAL*
+
+#+BEGIN_SRC emacs-lisp
+;
+#+END_SRC
+
+** projectile
+
+Manage and navigate projects in Emacs easily
+
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :init
+    (projectile-global-mode))
+#+END_SRC
+
+*** projectile-rails
+
+Minor mode for Rails projects based on projectile-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile-rails
+    :init
+    (projectile-rails-global-mode)
+    (setq projectile-rails-add-keywords nil))
+#+END_SRC
+
+** python-mode
+
+Stop =:= from causing electric indent.
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (setq electric-indent-chars (delq ?: electric-indent-chars))))
+#+END_SRC
+
+** rainbow-delimiters
+
+Highlight brackets according to their depth
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :init
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+END_SRC
+
+** rainbow-mode
+
+Colorize color names in buffers
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-mode
+    :init
+    (define-globalized-minor-mode my-global-rainbow-mode rainbow-mode
+      (lambda () (rainbow-mode 1)))
+
+    (my-global-rainbow-mode 1))
+#+END_SRC
+
+** Ruby on Rails-related
+*** rbenv
+
+Emacs integration for rbenv
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rbenv
+    :init
+    (setq rbenv-modeline-function 'rbenv--modeline-plain)
+    (global-rbenv-mode))
+#+END_SRC
+
+*** ruby-guard
+
+Launching guard directly inside emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ruby-guard)
+#+END_SRC
+
+** scss-mode
+
+Major mode for editing SCSS files
+
+#+BEGIN_SRC emacs-lisp
+  (use-package scss-mode)
+#+END_SRC
+
+** simpleclip
+
+Simplified access to the system clipboard
+
+#+BEGIN_SRC emacs-lisp
+  (use-package simpleclip
+    :bind (("C-c C-1" . simpleclip-copy)
+           ("C-c C-2" . simpleclip-cut)
+           ("C-c C-3" . simpleclip-paste))
+    :init
+    (simpleclip-mode t))
+#+END_SRC
+
+** smartparens
+
+Automatic insertion, wrapping and paredit-like navigation with user defined pairs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package smartparens
+    :diminish smartparens-mode
+    :init
+    (require 'smartparens-config)
+    (smartparens-global-mode t))
+#+END_SRC
+
+** smex
+
+M-x interface with Ido-style fuzzy matching.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package smex
+    :bind (("M-x" . smex)
+           ("M-X" . smex-major-mode-commands)
+           ("C-c C-c M-x" . execute-extended-command))
+    :init
+    (smex-initialize))
+#+END_SRC
+
+** smooth-scrolling
+
+Make emacs scroll smoothly
+
+#+BEGIN_SRC emacs-lisp
+  (use-package smooth-scrolling
+    :init
+    (smooth-scrolling-mode t))
+#+END_SRC
+
+** TRAMP
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tramp)
+#+END_SRC
+
+** try
+
+Try out Emacs packages.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package try)
+#+END_SRC
+
+** undo-tree
+
+Treat undo history as a tree.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :diminish undo-tree-mode
+    :init
+    (setq undo-tree-mode-lighter "")
+    (global-undo-tree-mode))
+#+END_SRC
+
+** web-mode
+
+major mode for editing web templates
+
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :mode ("\\.erb\\'" "\\.html?\\'")
+    :init
+    (setq web-mode-enable-auto-pairing -1))
+#+END_SRC
+
+** which-key
+
+Display available keybindings in popup
+
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :diminish which-key-mode
+    :init
+    (setq which-key-idle-delay 1.5)
+    (which-key-mode))
+#+END_SRC
+
+** xkcd
+
+View xkcd from Emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package xkcd)
+#+END_SRC
+
+** yasnippet
+
+Yet another snippet extension for Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet)
+  ;TODO
+#+END_SRC
+
+* Finishing Touches
+
+Maximize and split the frame at startup.
+
+#+BEGIN_SRC emacs-lisp
+  (defun my/max-n-split (&optional frame)
+    "a bad workaround"
+    (interactive)
+    (with-selected-frame (or frame (selected-frame))
+      (toggle-frame-maximized)
+      (split-window-right)))
+
+  ;; GUI
+  (if window-system
+      (my/max-n-split))
+  ;; daemon
+  (add-hook 'after-make-frame-functions 'my/max-n-split)
+#+END_SRC
+
+Rebind =org-time-stamp-inactive= function.  Something unbinds it and I'm unsure what that is... for now.
+
+#+BEGIN_SRC emacs-lisp
+  (define-key org-mode-map (kbd "C-c D") 'org-time-stamp-inactive)
+#+END_SRC
+
+Ensure the config and been successfully loaded by sending a cute ASCII art message (made with http://www.patorjk.com/software/taag/).
+
+#+BEGIN_SRC emacs-lisp
+  (message "
+
+         ███▄ ▄███▓ ██▓  ██████   ██████  ▒█████   ███▄    █
+        ▓██▒▀█▀ ██▒▓██▒▒██    ▒ ▒██    ▒ ▒██▒  ██▒ ██ ▀█   █
+        ▓██    ▓██░▒██▒░ ▓██▄   ░ ▓██▄   ▒██░  ██▒▓██  ▀█ ██▒
+        ▒██    ▒██ ░██░  ▒   ██▒  ▒   ██▒▒██   ██░▓██▒  ▐▌██▒
+        ▒██▒   ░██▒░██░▒██████▒▒▒██████▒▒░ ████▓▒░▒██░   ▓██░
+        ░ ▒░   ░  ░░▓  ▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░░ ▒░▒░▒░ ░ ▒░   ▒ ▒
+        ░  ░      ░ ▒ ░░ ░▒  ░ ░░ ░▒  ░ ░  ░ ▒ ▒░ ░ ░░   ░ ▒░
+        ░      ░    ▒ ░░  ░  ░  ░  ░  ░  ░ ░ ░ ▒     ░   ░ ░
+               ░    ░        ░        ░      ░ ░           ░
+
+   ▄████▄   ▒█████   ███▄ ▄███▓ ██▓███   ██▓    ▓█████▄▄▄█████▓▓█████
+  ▒██▀ ▀█  ▒██▒  ██▒▓██▒▀█▀ ██▒▓██░  ██▒▓██▒    ▓█   ▀▓  ██▒ ▓▒▓█   ▀
+  ▒▓█    ▄ ▒██░  ██▒▓██    ▓██░▓██░ ██▓▒▒██░    ▒███  ▒ ▓██░ ▒░▒███
+  ▒▓▓▄ ▄██▒▒██   ██░▒██    ▒██ ▒██▄█▓▒ ▒▒██░    ▒▓█  ▄░ ▓██▓ ░ ▒▓█  ▄
+  ▒ ▓███▀ ░░ ████▓▒░▒██▒   ░██▒▒██▒ ░  ░░██████▒░▒████▒ ▒██▒ ░ ░▒████▒
+  ░ ░▒ ▒  ░░ ▒░▒░▒░ ░ ▒░   ░  ░▒▓▒░ ░  ░░ ▒░▓  ░░░ ▒░ ░ ▒ ░░   ░░ ▒░ ░
+    ░  ▒     ░ ▒ ▒░ ░  ░      ░░▒ ░     ░ ░ ▒  ░ ░ ░  ░   ░     ░ ░  ░
+  ░        ░ ░ ░ ▒  ░      ░   ░░         ░ ░      ░    ░         ░
+  ░ ░          ░ ░         ░                ░  ░   ░  ░           ░  ░
+  ░
+
+  ")
+#+END_SRC

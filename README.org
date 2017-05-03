@@ -1,0 +1,8 @@
+#+TITLE: README.org --- My personal GNU Emacs configuration
+#+DATE: <2017-05-02 Tue>
+#+AUTHOR: Geoffrey T. Wark
+#+EMAIL: deek9n@protonmail.ch
+
+See [[file:geoff.org][geoff.org]] to find out where all the magic happens. :star:
+
+*/!\ NO SUPPORT WILL BE PROVIDED /!\*
