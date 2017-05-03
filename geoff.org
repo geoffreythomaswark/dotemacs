@@ -1090,7 +1090,9 @@ major mode for editing web templates
   (use-package web-mode
     :mode ("\\.erb\\'" "\\.html?\\'")
     :init
-    (setq web-mode-enable-auto-pairing -1))
+    (progn
+      (setq web-mode-enable-auto-pairing -1)
+      (add-hook 'web-mode-hook (lambda () (visual-line-mode)))))
 #+END_SRC
 
 ** which-key
