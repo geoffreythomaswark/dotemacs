@@ -1,0 +1,10 @@
+auto-save-list/
+elpa/
+emojis/
+eshell/
+/geoff.el
+/history
+/ido.last
+/projectile-bookmarks.eld
+session*
+/smex-items
