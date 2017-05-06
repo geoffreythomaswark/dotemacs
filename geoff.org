@@ -922,8 +922,11 @@ Display ugly ^L page breaks as tidy horizontal lines
 
 ** pianobar.el *MANUAL*
 
+Run Pandora as an inferior process in emacs by using pianobar
+
 #+BEGIN_SRC emacs-lisp
-;
+  (add-to-list 'load-path "~/.emacs.d/elisp/")
+  (autoload 'pianobar "pianobar" nil t)
 #+END_SRC
 
 ** projectile
