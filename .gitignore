@@ -8,3 +8,6 @@ eshell/
 /projectile-bookmarks.eld
 session*
 /smex-items
+/.mc-lists.el
+.python-environments/
+elisp/
