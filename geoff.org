@@ -927,6 +927,9 @@ Run Pandora as an inferior process in emacs by using pianobar
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'load-path "~/.emacs.d/elisp/")
   (autoload 'pianobar "pianobar" nil t)
+
+  ;; Disable smartparens to make volume control easier
+  (add-hook 'pianobar-mode-hook (lambda () (smartparens-mode -1)))
 #+END_SRC
 
 ** projectile
