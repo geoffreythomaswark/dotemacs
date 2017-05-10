@@ -199,6 +199,8 @@ Use 2 spaces.  This needs to be explicitly set for some dumb reason.
 #+BEGIN_SRC emacs-lisp
   (setq css-indent-offset 2)
   (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
 #+END_SRC
 
 ** Makefiles
