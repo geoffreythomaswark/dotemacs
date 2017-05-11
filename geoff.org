@@ -201,6 +201,8 @@ Use 2 spaces.  This needs to be explicitly set for some dumb reason.
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2)
+  (setq web-mode-style-padding 2)
+  (setq web-mode-script-padding 2)
 #+END_SRC
 
 ** Makefiles
